@@ -3,8 +3,8 @@ import os
 import discord
 from discord.ext import commands
 import logging
-from Settings import Settings
-from SettingsCog import SettingsCog
+from settings import Settings
+from settings_cog import SettingsCog
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
@@ -36,6 +36,16 @@ async def on_ready():
 @client.command()
 async def ping(ctx):
     await ctx.send(f'Pong! {round(client.latency * 1000)}ms ')
+
+
+@client.check
+async def global_command_check(ctx):
+    if ctx.author.bot:
+        return False
+    if ctx.guild is None:
+        return True
+    else:
+        return ctx.guild.owner_id == ctx.author.id or ctx.author.guild_permissions.administrator
 
 
 # @client.event

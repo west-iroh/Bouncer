@@ -1,7 +1,7 @@
 import json
 import os
 import discord
-from GuildSettings import GuildSettings
+from guild_settings import GuildSettings
 
 
 class Settings:
