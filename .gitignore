@@ -1,0 +1,8 @@
+*.env
+bot-env/*
+db.json
+discord.log
+.DS_Store
+.idea/*
+__pycache__/*
+*.py[cod]
