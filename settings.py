@@ -19,10 +19,12 @@ class Settings:
             self._save()
         else:
             with f:
+                temp_data = dict()
                 json_data = json.load(f)
                 for guild_id, guild_data in json_data.items():
                     if (guild := self._client.get_guild(int(guild_id))) is not None:
-                        self._data[guild] = GuildSettings(self._save, guild, guild_data)
+                        temp_data[guild] = GuildSettings(self._save, guild, guild_data)
+                self._data = temp_data
 
     def _save(self):
         json_data = {}
@@ -32,7 +34,10 @@ class Settings:
         with open(self._db_file, 'w+') as f:
             json.dump(json_data, f)
 
-    def add_guild(self, guild: discord.guild):
+    def reload(self):
+        self._load()
+
+    def _add_guild(self, guild: discord.guild):
         self._data[guild] = GuildSettings(self._save, guild)
         self._save()
 
@@ -41,5 +46,5 @@ class Settings:
         if data is not None:
             return data
         else:
-            self.add_guild(guild)
+            self._add_guild(guild)
             return self._data[guild]

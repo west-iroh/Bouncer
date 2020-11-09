@@ -5,6 +5,7 @@ from discord.ext import commands
 import logging
 from settings import Settings
 from settings_cog import SettingsCog
+from guild_logger import GuildLogger
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
@@ -48,24 +49,44 @@ async def global_command_check(ctx):
         return ctx.guild.owner_id == ctx.author.id or ctx.author.guild_permissions.administrator
 
 
-# @client.event
-# async def on_message(message):
-#     pass
-#
-#
-# @client.event
-# async def on_guild_join(guild):
-#     client.settings.add_guild(guild)
-#
-#
-# @client.event
-# async def on_guild_role_delete(role):
-#     pass
-#
-#
-# @client.event
-# async def on_guild_channel_delete(channel):
-#     pass
-
+@client.listen('on_message')
+async def handle_message(message):
+    if message.guild is None or message.author.bot:
+        return
+    settings = client.settings.get_guild_settings(message.guild)
+    if settings.welcome_channel == message.channel:
+        guild_logger = GuildLogger(client, message.guild)
+        try:
+            age = int(message.content)
+        except ValueError:
+            await guild_logger.log_disregard(message.author, message.content)
+        else:
+            if 18 <= age <= 120:
+                try:
+                    await message.author.add_roles(settings.welcome_role)
+                except discord.errors.NotFound:
+                    await guild_logger.log_failed_admittance(message.author,
+                                                             age,
+                                                             "No welcome_role has been set")
+                except AttributeError:
+                    await guild_logger.log_failed_admittance(message.author,
+                                                             age,
+                                                             "No welcome_role has been set")
+                except discord.errors.Forbidden:
+                    await guild_logger.log_failed_admittance(message.author,
+                                                             age,
+                                                             "Bot does not have permission to give role")
+                else:
+                    await guild_logger.log_admittance(message.author, age)
+            else:
+                try:
+                    await message.author.ban(reason="Banned for being underage ({})".format(age))
+                except discord.errors.Forbidden:
+                    await guild_logger.log_failed_ban(message.author, age)
+        try:
+            await message.delete()
+        except discord.errors.Forbidden:
+            # no permission to delete message
+            pass
 
 client.run(os.getenv('TOKEN'), reconnect=True)

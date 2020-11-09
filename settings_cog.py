@@ -6,6 +6,12 @@ class SettingsCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+    # LISTENERS
+
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        self.client.settings.reload()
+
     # SET
 
     @commands.group()
@@ -53,7 +59,7 @@ class SettingsCog(commands.Cog):
     @commands.guild_only()
     async def get(self, ctx):
         if ctx.invoked_subcommand is None:
-            await ctx.send('Invalid set command passed...')
+            await ctx.send('Invalid get command passed...')
 
     @get.command(name="welcome_channel")
     async def get_welcome_channel(self, ctx):
@@ -69,3 +75,29 @@ class SettingsCog(commands.Cog):
     async def get_welcome_role(self, ctx):
         settings = self.client.settings.get_guild_settings(ctx.guild)
         await ctx.send('welcome_role is {}'.format(settings.welcome_role))
+
+    # DISABLE
+
+    @commands.group()
+    @commands.guild_only()
+    async def disable(self, ctx):
+        if ctx.invoked_subcommand is None:
+            await ctx.send('Invalid disable command passed...')
+
+    @disable.command(name="welcome_channel")
+    async def disable_welcome_channel(self, ctx):
+        settings = self.client.settings.get_guild_settings(ctx.guild)
+        settings.welcome_channel = None
+        await ctx.send('Disabled welcome_channel')
+
+    @disable.command(name="log_channel")
+    async def disable_log_channel(self, ctx):
+        settings = self.client.settings.get_guild_settings(ctx.guild)
+        settings.log_channel = None
+        await ctx.send('Disabled log_channel')
+
+    @disable.command(name="welcome_role")
+    async def disable_welcome_role(self, ctx):
+        settings = self.client.settings.get_guild_settings(ctx.guild)
+        settings.welcome_role = None
+        await ctx.send('Disabled welcome_role')
