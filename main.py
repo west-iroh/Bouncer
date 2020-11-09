@@ -54,6 +54,8 @@ async def handle_message(message):
     if message.guild is None or message.author.bot:
         return
     settings = client.settings.get_guild_settings(message.guild)
+    if not set(message.author.roles).isdisjoint(set(settings.exempt_roles)):
+        return
     if settings.welcome_channel == message.channel:
         guild_logger = GuildLogger(client, message.guild)
         try:
@@ -80,9 +82,13 @@ async def handle_message(message):
                     await guild_logger.log_admittance(message.author, age)
             else:
                 try:
-                    await message.author.ban(reason="Banned for being underage ({})".format(age))
+                    await message.author.ban(
+                        reason="Banned for being underage ({})".format(age),
+                        delete_message_days=0)
                 except discord.errors.Forbidden:
                     await guild_logger.log_failed_ban(message.author, age)
+                else:
+                    await guild_logger.log_ban(message.author, age)
         try:
             await message.delete()
         except discord.errors.Forbidden:

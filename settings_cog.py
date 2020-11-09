@@ -24,7 +24,7 @@ class SettingsCog(commands.Cog):
     async def set_welcome_channel(self, ctx, channel: discord.TextChannel):
         settings = self.client.settings.get_guild_settings(ctx.guild)
         settings.welcome_channel = channel
-        await ctx.send('set welcome_channel to {}'.format(channel))
+        await ctx.send('Set welcome_channel to {}'.format(channel))
 
     @set_welcome_channel.error
     async def set_welcome_channel_error(self, ctx, error):
@@ -35,7 +35,7 @@ class SettingsCog(commands.Cog):
     async def set_log_channel(self, ctx, channel: discord.TextChannel):
         settings = self.client.settings.get_guild_settings(ctx.guild)
         settings.log_channel = channel
-        await ctx.send('set log_channel to {}'.format(channel))
+        await ctx.send('Set log_channel to {}'.format(channel))
 
     @set_log_channel.error
     async def set_log_channel_error(self, ctx, error):
@@ -46,10 +46,21 @@ class SettingsCog(commands.Cog):
     async def set_welcome_role(self, ctx, role: discord.Role):
         settings = self.client.settings.get_guild_settings(ctx.guild)
         settings.welcome_role = role
-        await ctx.send('set welcome_role to {}'.format(role))
+        await ctx.send('Set welcome_role to {}'.format(role))
 
     @set_welcome_role.error
     async def set_welcome_role_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send('I could not find that role...')
+
+    @set.command(name="exempt_roles")
+    async def set_exempt_roles(self, ctx, roles: commands.Greedy[discord.Role]):
+        settings = self.client.settings.get_guild_settings(ctx.guild)
+        settings.exempt_roles = roles
+        await ctx.send('Set exempt_roles to {}'.format(roles))
+
+    @set_exempt_roles.error
+    async def set_exempt_roles_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             await ctx.send('I could not find that role...')
 
@@ -75,6 +86,11 @@ class SettingsCog(commands.Cog):
     async def get_welcome_role(self, ctx):
         settings = self.client.settings.get_guild_settings(ctx.guild)
         await ctx.send('welcome_role is {}'.format(settings.welcome_role))
+
+    @get.command(name="exempt_roles")
+    async def get_exempt_roles(self, ctx):
+        settings = self.client.settings.get_guild_settings(ctx.guild)
+        await ctx.send('exempt_roles are {}'.format(settings.exempt_roles))
 
     # DISABLE
 
